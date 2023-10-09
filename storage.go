@@ -145,6 +145,8 @@ func NewStorage(c PostgresStorage) (certmagic.Storage, error) {
 	if err != nil {
 		return nil, err
 	}
+	database.SetMaxOpenConns(10)
+
 	s := &PostgresStorage{
 		Database:     database,
 		QueryTimeout: c.QueryTimeout,
