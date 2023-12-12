@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
-	"ioutils"
 	"os"
 	"strconv"
 	"time"
@@ -146,12 +145,12 @@ func NewStorage(c PostgresStorage) (certmagic.Storage, error) {
 		connStr_fmt := "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s"
 
 		if c.Password_file != "" {
-			content, err := ioutils.ReadFile(c.Password_file)
+			content, err := os.ReadFile(c.Password_file)
 			if err != nil {
 				return nil, err
 			}
 
-			c.Password = content
+			c.Password = string(content)
 		}
 		// Set each value dynamically w/ Sprintf
 		connStr = fmt.Sprintf(connStr_fmt, c.Host, c.Port, c.User, c.Password, c.DBname, c.SSLmode)
