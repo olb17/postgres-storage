@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
+	"ioutils"
 	"os"
 	"strconv"
 	"time"
@@ -30,6 +31,7 @@ type PostgresStorage struct {
 	Port             string        `json:"port,omitempty"`
 	User             string        `json:"user,omitempty"`
 	Password         string        `json:"password,omitempty"`
+	Password_file    string        `json:"password_file,omitempty"`
 	DBname           string        `json:"dbname,omitempty"`
 	SSLmode          string        `json:"sslmode,omitempty"` // Valid values for sslmode are: disable, require, verify-ca, verify-full
 	ConnectionString string        `json:"connection_string,omitempty"`
@@ -59,6 +61,8 @@ func (c *PostgresStorage) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 			c.User = value
 		case "password":
 			c.Password = value
+		case "password_file":
+			c.Password_file = value
 		case "dbname":
 			c.DBname = value
 		case "sslmode":
@@ -92,6 +96,9 @@ func (c *PostgresStorage) Provision(ctx caddy.Context) error {
 	}
 	if c.Password == "" {
 		c.Password = os.Getenv("POSTGRES_PASSWORD")
+	}
+	if c.Password_file == "" {
+		c.Password_file = os.Getenv("POSTGRES_PASSWORD_FILE")
 	}
 	if !c.DisableDDL {
 		disableDDLString := os.Getenv("POSTGRES_DISABLE_DDL")
@@ -137,6 +144,15 @@ func NewStorage(c PostgresStorage) (certmagic.Storage, error) {
 		connStr = c.ConnectionString
 	} else {
 		connStr_fmt := "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s"
+
+		if c.Password_file != "" {
+			content, err := ioutils.ReadFile(c.Password_file)
+			if err != nil {
+				return nil, err
+			}
+
+			c.Password = content
+		}
 		// Set each value dynamically w/ Sprintf
 		connStr = fmt.Sprintf(connStr_fmt, c.Host, c.Port, c.User, c.Password, c.DBname, c.SSLmode)
 	}
