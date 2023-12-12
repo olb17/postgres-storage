@@ -1,4 +1,4 @@
-module github.com/ackermann/postgres-storage
+module github.com/olb17/postgres-storage
 
 go 1.18
 
