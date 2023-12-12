@@ -147,10 +147,10 @@ func NewStorage(c PostgresStorage) (certmagic.Storage, error) {
 		if c.Password_file != "" {
 			content, err := os.ReadFile(c.Password_file)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf(`Error reading password file %s: %w`, c.Password_file, err)
 			}
 
-			c.Password = string(content)
+			c.Password = string(content[:])
 		}
 		// Set each value dynamically w/ Sprintf
 		connStr = fmt.Sprintf(connStr_fmt, c.Host, c.Port, c.User, c.Password, c.DBname, c.SSLmode)
